@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoAnalyzer Pro - Dashboard Completo</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0e27;
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 2.2em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .status-panel {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .status-item {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            backdrop-filter: blur(10px);
+        }
+        
+        .status-online {
+            background: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .nav-tabs {
+            background: #1a1f3a;
+            padding: 0;
+            border-bottom: 2px solid #2a5298;
+        }
+        
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+        }
+        
+        .tab-btn {
+            background: none;
+            border: none;
+            color: #8892b0;
+            padding: 15px 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab-btn.active {
+            color: #64ffda;
+            border-bottom-color: #64ffda;
+            background: rgba(100, 255, 218, 0.1);
+        }
+        
+        .tab-btn:hover {
+            color: #64ffda;
+            background: rgba(100, 255, 218, 0.05);
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .grid {
+            display: grid;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .grid-2 {
+            grid-template-columns: 1fr 1fr;
+        }
+        
+        .grid-3 {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        
+        .grid-4 {
+            grid-template-columns: repeat(4, 1fr);
+        }
+        
+        .card {
+            background: linear-gradient(145deg, #1e2139 0%, #252847 100%);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #2a5298;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(42, 82, 152, 0.2);
+        }
+        
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #2a5298;
+        }
+        
+        .card-title {
+            font-size: 1.4em;
+            color: #64ffda;
+            font-weight: 600;
+        }
+        
+        .card-subtitle {
+            color: #8892b0;
+            font-size: 0.9em;
+        }
+        
+        .metric-card {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .metric-label {
+            color: #8892b0;
+            font-size: 0.9em;
+        }
+        
+        .crypto-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .crypto-table th {
+            background: #2a5298;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #64ffda;
+        }
+        
+        .crypto-table td {
+            padding: 12px;
+            border-bottom: 1px solid #2a5298;
+            transition: background 0.3s ease;
+        }
+        
+        .crypto-table tr:hover td {
+            background: rgba(100, 255, 218, 0.05);
+        }
+        
+        .crypto-symbol {
+            font-weight: bold;
+            color: #64ffda;
+        }
+        
+        .crypto-name {
+            color: #8892b0;
+            font-size: 0.9em;
+        }
+        
+        .price-change {
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        .positive {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .negative {
+            background: #f44336;
+            color: white;
+        }
+        
+        .neutral {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 20px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #8892b0;
+            font-style: italic;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #8892b0;
+            border-radius: 50%;
+            border-top-color: #64ffda;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .refresh-btn {
+            background: linear-gradient(135deg, #64ffda 0%, #4CAF50 100%);
+            color: #0a0e27;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px auto;
+            display: block;
+            font-size: 1em;
+        }
+        
+        .refresh-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(100, 255, 218, 0.3);
+        }
+        
+        .alert-item {
+            background: rgba(100, 255, 218, 0.1);
+            border: 1px solid #64ffda;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .alert-title {
+            font-weight: bold;
+            color: #64ffda;
+            margin-bottom: 5px;
+        }
+        
+        .alert-desc {
+            color: #8892b0;
+            font-size: 0.9em;
+        }
+        
+        .analysis-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #2a5298;
+        }
+        
+        .analysis-item:last-child {
+            border-bottom: none;
+        }
+        
+        .analysis-coin {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .coin-icon {
+            width: 40px;
+            height: 40px;
+            background: #2a5298;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #64ffda;
+        }
+        
+        .analysis-score {
+            text-align: right;
+        }
+        
+        .score-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #64ffda;
+        }
+        
+        .score-label {
+            color: #8892b0;
+            font-size: 0.8em;
+        }
+        
+        .recommendation {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+        
+        .buy {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .hold {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .sell {
+            background: #f44336;
+            color: white;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .page-btn {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .page-btn:hover, .page-btn.active {
+            background: #64ffda;
+            color: #0a0e27;
+        }
+        
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-content {
+                flex-wrap: wrap;
+            }
+            
+            .crypto-table {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🚀 CryptoAnalyzer Pro</div>
+            <div class="status-panel">
+                <div class="status-item status-online" id="systemStatus">● Sistema Online</div>
+                <div class="status-item" id="lastUpdate">Última atualização: --:--</div>
+                <div class="status-item" id="btcDominance">BTC Dom: --%</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="nav-tabs">
+        <div class="nav-content">
+            <button class="tab-btn active" onclick="showTab('overview')">📊 Visão Geral</button>
+            <button class="tab-btn" onclick="showTab('cryptos')">💰 Top 50 Cryptos</button>
+            <button class="tab-btn" onclick="showTab('analysis')">📈 Análise Técnica</button>
+            <button class="tab-btn" onclick="showTab('altseason')">🚀 Alt Season</button>
+            <button class="tab-btn" onclick="showTab('alerts')">🔔 Alertas</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <button class="refresh-btn" onclick="loadAllData()">🔄 Atualizar Todos os Dados</button>
+        
+        <!-- Visão Geral -->
+        <div id="overview" class="tab-content active">
+            <div class="grid grid-4">
+                <div class="card metric-card">
+                    <div class="metric-value" id="totalMarketCap">$0</div>
+                    <div class="metric-label">Market Cap Total</div>
+                </div>
+                <div class="card metric-card">
+                    <div class="metric-value" id="btcDominanceMetric">0%</div>
+                    <div class="metric-label">Dominância BTC</div>
+                </div>
+                <div class="card metric-card">
+                    <div class="metric-value" id="altSeasonIndex">0</div>
+                    <div class="metric-label">Índice Alt Season</div>
+                </div>
+                <div class="card metric-card">
+                    <div class="metric-value" id="totalVolume">$0</div>
+                    <div class="metric-label">Volume 24h</div>
+                </div>
+            </div>
+            
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📈 Gráfico de Dominância BTC</div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="dominanceChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">🏆 Top Performers 24h</div>
+                    </div>
+                    <div id="topPerformers" class="loading">Carregando...</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top 50 Cryptos -->
+        <div id="cryptos" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">💰 Top 50 Criptomoedas</div>
+                    <div class="card-subtitle">Dados em tempo real</div>
+                </div>
+                <div id="cryptoTableContainer" class="loading">Carregando lista completa...</div>
+                <div class="pagination" id="cryptoPagination"></div>
+            </div>
+        </div>
+        
+        <!-- Análise Técnica -->
+        <div id="analysis" class="tab-content">
+            <div class="grid grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📊 Análise Técnica Avançada</div>
+                    </div>
+                    <div id="technicalAnalysis" class="loading">Carregando análises...</div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">🎯 Recomendações IA</div>
+                    </div>
+                    <div id="aiRecommendations" class="loading">Processando...</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📈 Indicadores Técnicos</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="indicatorsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Alt Season -->
+        <div id="altseason" class="tab-content">
+            <div class="grid grid-3">
+                <div class="card metric-card">
+                    <div class="metric-value" id="altSeasonScore">0</div>
+                    <div class="metric-label">Score Alt Season</div>
+                </div>
+                <div class="card metric-card">
+                    <div class="metric-value" id="altSeasonTrend">-</div>
+                    <div class="metric-label">Tendência</div>
+                </div>
+                <div class="card metric-card">
+                    <div class="metric-value" id="altSeasonSignal">-</div>
+                    <div class="metric-label">Sinal</div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🚀 Ranking Alt Season</div>
+                    <div class="card-subtitle">Altcoins mais promissoras</div>
+                </div>
+                <div id="altSeasonRanking" class="loading">Analisando...</div>
+            </div>
+        </div>
+        
+        <!-- Alertas -->
+        <div id="alerts" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🔔 Alertas Ativos</div>
+                    <div class="card-subtitle">Notificações em tempo real</div>
+                </div>
+                <div id="alertsList" class="loading">Carregando alertas...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://8000-ih6gzqym3acpk3fwhwqwj-47b8453d.manusvm.computer';
+        let currentPage = 1;
+        let cryptoData = [];
+        let charts = {};
+        
+        // Navegação entre abas
+        function showTab(tabName) {
+            // Esconder todas as abas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remover classe active de todos os botões
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Mostrar aba selecionada
+            document.getElementById(tabName).classList.add('active');
+            
+            // Ativar botão correspondente
+            event.target.classList.add('active');
+            
+            // Carregar dados específicos da aba
+            loadTabData(tabName);
+        }
+        
+        // Carregar dados específicos de cada aba
+        function loadTabData(tabName) {
+            switch(tabName) {
+                case 'overview':
+                    loadOverviewData();
+                    break;
+                case 'cryptos':
+                    loadCryptoList();
+                    break;
+                case 'analysis':
+                    loadTechnicalAnalysis();
+                    break;
+                case 'altseason':
+                    loadAltSeasonData();
+                    break;
+                case 'alerts':
+                    loadAlerts();
+                    break;
+            }
+        }
+        
+        // Carregar todos os dados
+        async function loadAllData() {
+            try {
+                document.getElementById('systemStatus').innerHTML = '🔄 Atualizando...';
+                
+                await Promise.all([
+                    loadOverviewData(),
+                    loadCryptoList(),
+                    loadTechnicalAnalysis(),
+                    loadAltSeasonData(),
+                    loadAlerts()
+                ]);
+                
+                document.getElementById('systemStatus').innerHTML = '● Sistema Online';
+                document.getElementById('lastUpdate').innerHTML = `Última atualização: ${new Date().toLocaleTimeString()}`;
+                
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                document.getElementById('systemStatus').innerHTML = '❌ Erro de Conexão';
+            }
+        }
+        
+        // Carregar dados da visão geral
+        async function loadOverviewData() {
+            try {
+                const [cryptoResponse, analysisResponse] = await Promise.all([
+                    fetch(`${API_BASE}/api/crypto/list?limit=50`),
+                    fetch(`${API_BASE}/api/analysis/altcoins`)
+                ]);
+                
+                const cryptoData = await cryptoResponse.json();
+                const analysisData = await analysisResponse.json();
+                
+                // Calcular métricas
+                const totalMarketCap = cryptoData.data.reduce((sum, coin) => sum + coin.market_cap, 0);
+                const totalVolume = cryptoData.data.reduce((sum, coin) => sum + coin.volume_24h, 0);
+                
+                document.getElementById('totalMarketCap').textContent = formatLargeNumber(totalMarketCap);
+                document.getElementById('btcDominanceMetric').textContent = `${analysisData.btc_dominance.toFixed(1)}%`;
+                document.getElementById('altSeasonIndex').textContent = analysisData.alt_season_index;
+                document.getElementById('totalVolume').textContent = formatLargeNumber(totalVolume);
+                document.getElementById('btcDominance').textContent = `BTC Dom: ${analysisData.btc_dominance.toFixed(1)}%`;
+                
+                // Top performers
+                const topPerformers = cryptoData.data
+                    .sort((a, b) => b.price_change_24h - a.price_change_24h)
+                    .slice(0, 5);
+                
+                displayTopPerformers(topPerformers);
+                createDominanceChart();
+                
+            } catch (error) {
+                console.error('Erro ao carregar visão geral:', error);
+            }
+        }
+        
+        // Carregar lista completa de criptos
+        async function loadCryptoList() {
+            try {
+                const response = await fetch(`${API_BASE}/api/crypto/list?limit=50`);
+                const data = await response.json();
+                cryptoData = data.data;
+                
+                displayCryptoTable(cryptoData);
+                
+            } catch (error) {
+                console.error('Erro ao carregar lista de criptos:', error);
+                document.getElementById('cryptoTableContainer').innerHTML = '❌ Erro ao carregar dados';
+            }
+        }
+        
+        // Carregar análise técnica
+        async function loadTechnicalAnalysis() {
+            try {
+                const response = await fetch(`${API_BASE}/api/analysis/altcoins`);
+                const data = await response.json();
+                
+                displayTechnicalAnalysis(data);
+                displayAIRecommendations(data.top_altcoins);
+                createIndicatorsChart(data);
+                
+            } catch (error) {
+                console.error('Erro ao carregar análise técnica:', error);
+            }
+        }
+        
+        // Carregar dados Alt Season
+        async function loadAltSeasonData() {
+            try {
+                const response = await fetch(`${API_BASE}/api/analysis/altcoins`);
+                const data = await response.json();
+                
+                document.getElementById('altSeasonScore').textContent = data.alt_season_index;
+                document.getElementById('altSeasonTrend').textContent = data.trend.replace('_', ' ').toUpperCase();
+                
+                let signal = '🟡 NEUTRO';
+                if (data.alt_season_index > 75) signal = '🟢 COMPRA';
+                else if (data.alt_season_index < 25) signal = '🔴 VENDA';
+                
+                document.getElementById('altSeasonSignal').textContent = signal;
+                
+                displayAltSeasonRanking(data.top_altcoins);
+                
+            } catch (error) {
+                console.error('Erro ao carregar Alt Season:', error);
+            }
+        }
+        
+        // Carregar alertas
+        async function loadAlerts() {
+            try {
+                // Simular alertas (implementar endpoint real depois)
+                const alerts = [
+                    {
+                        title: '🚀 UNI Breakout Detectado',
+                        description: 'Uniswap rompeu resistência de $11.50 com volume alto',
+                        time: '2 min atrás'
+                    },
+                    {
+                        title: '📊 BTC Dominância Caindo',
+                        description: 'Dominância do Bitcoin caiu para 59.8%, sinal de Alt Season',
+                        time: '5 min atrás'
+                    },
+                    {
+                        title: '⚡ Volume Spike em ADA',
+                        description: 'Cardano apresentou aumento de 150% no volume nas últimas 4h',
+                        time: '12 min atrás'
+                    }
+                ];
+                
+                displayAlerts(alerts);
+                
+            } catch (error) {
+                console.error('Erro ao carregar alertas:', error);
+            }
+        }
+        
+        // Funções de display
+        function displayTopPerformers(performers) {
+            const container = document.getElementById('topPerformers');
+            container.innerHTML = performers.map(coin => `
+                <div class="analysis-item">
+                    <div class="analysis-coin">
+                        <div class="coin-icon">${coin.symbol.substring(0, 2)}</div>
+                        <div>
+                            <div class="crypto-symbol">${coin.symbol}</div>
+                            <div class="crypto-name">${coin.name}</div>
+                        </div>
+                    </div>
+                    <div class="analysis-score">
+                        <div class="price-change ${coin.price_change_24h >= 0 ? 'positive' : 'negative'}">
+                            ${coin.price_change_24h >= 0 ? '+' : ''}${coin.price_change_24h.toFixed(2)}%
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function displayCryptoTable(cryptos) {
+            const container = document.getElementById('cryptoTableContainer');
+            
+            container.innerHTML = `
+                <table class="crypto-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Moeda</th>
+                            <th>Preço</th>
+                            <th>24h %</th>
+                            <th>Market Cap</th>
+                            <th>Volume 24h</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${cryptos.map((crypto, index) => `
+                            <tr>
+                                <td>${index + 1}</td>
+                                <td>
+                                    <div class="crypto-symbol">${crypto.symbol}</div>
+                                    <div class="crypto-name">${crypto.name}</div>
+                                </td>
+                                <td>$${crypto.current_price.toLocaleString()}</td>
+                                <td>
+                                    <span class="price-change ${crypto.price_change_24h >= 0 ? 'positive' : 'negative'}">
+                                        ${crypto.price_change_24h >= 0 ? '+' : ''}${crypto.price_change_24h.toFixed(2)}%
+                                    </span>
+                                </td>
+                                <td>${formatLargeNumber(crypto.market_cap)}</td>
+                                <td>${formatLargeNumber(crypto.volume_24h)}</td>
+                                <td>
+                                    <button class="page-btn" onclick="analyzeToken('${crypto.symbol}')">
+                                        Analisar
+                                    </button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+        
+        function displayTechnicalAnalysis(data) {
+            const container = document.getElementById('technicalAnalysis');
+            
+            container.innerHTML = `
+                <div class="analysis-item">
+                    <div>
+                        <div class="alert-title">Dominância BTC</div>
+                        <div class="alert-desc">${data.btc_dominance.toFixed(1)}% - ${data.trend.includes('alt') ? 'Favorável para altcoins' : 'Dominante'}</div>
+                    </div>
+                    <div class="score-value">${data.btc_dominance.toFixed(1)}%</div>
+                </div>
+                
+                <div class="analysis-item">
+                    <div>
+                        <div class="alert-title">Índice Alt Season</div>
+                        <div class="alert-desc">Medida de força das altcoins vs BTC</div>
+                    </div>
+                    <div class="score-value">${data.alt_season_index}/100</div>
+                </div>
+                
+                <div class="analysis-item">
+                    <div>
+                        <div class="alert-title">Tendência Geral</div>
+                        <div class="alert-desc">${data.trend.replace('_', ' ').toUpperCase()}</div>
+                    </div>
+                    <div class="recommendation ${data.trend.includes('alt') ? 'buy' : 'hold'}">
+                        ${data.trend.includes('alt') ? 'COMPRA' : 'AGUARDA'}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function displayAIRecommendations(altcoins) {
+            const container = document.getElementById('aiRecommendations');
+            
+            container.innerHTML = altcoins.map(coin => `
+                <div class="analysis-item">
+                    <div class="analysis-coin">
+                        <div class="coin-icon">${coin.symbol.substring(0, 2)}</div>
+                        <div>
+                            <div class="crypto-symbol">${coin.symbol}</div>
+                            <div class="crypto-name">Score: ${coin.score}/100</div>
+                        </div>
+                    </div>
+                    <div class="analysis-score">
+                        <div class="recommendation ${coin.recommendation}">
+                            ${coin.recommendation.toUpperCase()}
+                        </div>
+                        <div class="score-label">${(coin.confidence * 100).toFixed(0)}% confiança</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function displayAltSeasonRanking(altcoins) {
+            const container = document.getElementById('altSeasonRanking');
+            
+            container.innerHTML = altcoins.map((coin, index) => `
+                <div class="analysis-item">
+                    <div class="analysis-coin">
+                        <div style="font-weight: bold; color: #64ffda; margin-right: 15px;">#${index + 1}</div>
+                        <div class="coin-icon">${coin.symbol.substring(0, 2)}</div>
+                        <div>
+                            <div class="crypto-symbol">${coin.symbol}</div>
+                            <div class="crypto-name">Sinais: ${coin.signals.join(', ')}</div>
+                        </div>
+                    </div>
+                    <div class="analysis-score">
+                        <div class="score-value">${coin.score}</div>
+                        <div class="score-label">Score</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function displayAlerts(alerts) {
+            const container = document.getElementById('alertsList');
+            
+            container.innerHTML = alerts.map(alert => `
+                <div class="alert-item">
+                    <div class="alert-title">${alert.title}</div>
+                    <div class="alert-desc">${alert.description}</div>
+                    <div style="color: #8892b0; font-size: 0.8em; margin-top: 5px;">${alert.time}</div>
+                </div>
+            `).join('');
+        }
+        
+        // Criar gráficos
+        function createDominanceChart() {
+            const ctx = document.getElementById('dominanceChart').getContext('2d');
+            
+            if (charts.dominance) {
+                charts.dominance.destroy();
+            }
+            
+            charts.dominance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago'],
+                    datasets: [{
+                        label: 'Dominância BTC (%)',
+                        data: [65, 62, 58, 61, 59, 57, 60, 59.8],
+                        borderColor: '#64ffda',
+                        backgroundColor: 'rgba(100, 255, 218, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#8892b0'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#8892b0'
+                            },
+                            grid: {
+                                color: '#2a5298'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#8892b0'
+                            },
+                            grid: {
+                                color: '#2a5298'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createIndicatorsChart(data) {
+            const ctx = document.getElementById('indicatorsChart').getContext('2d');
+            
+            if (charts.indicators) {
+                charts.indicators.destroy();
+            }
+            
+            charts.indicators = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['RSI', 'MACD', 'Bollinger', 'Volume', 'Momentum', 'Trend'],
+                    datasets: [{
+                        label: 'Indicadores Técnicos',
+                        data: [65, 78, 82, 90, 75, 88],
+                        borderColor: '#64ffda',
+                        backgroundColor: 'rgba(100, 255, 218, 0.2)',
+                        pointBackgroundColor: '#64ffda'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#8892b0'
+                            }
+                        }
+                    },
+                    scales: {
+                        r: {
+                            ticks: {
+                                color: '#8892b0'
+                            },
+                            grid: {
+                                color: '#2a5298'
+                            },
+                            angleLines: {
+                                color: '#2a5298'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Funções utilitárias
+        function formatLargeNumber(num) {
+            if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toFixed(2);
+        }
+        
+        function analyzeToken(symbol) {
+            alert(`Analisando ${symbol}... Funcionalidade em desenvolvimento!`);
+        }
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAllData();
+            
+            // Atualizar dados a cada 30 segundos
+            setInterval(loadAllData, 30000);
+        });
+    </script>
+</body>
+</html>
+
