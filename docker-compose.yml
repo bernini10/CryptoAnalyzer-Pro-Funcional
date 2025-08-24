@@ -43,6 +43,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: crypto_backend
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgresql://crypto_user:crypto_pass@postgres:5432/crypto_db
       - REDIS_URL=redis://redis:6379/0
@@ -68,30 +70,30 @@ services:
       - crypto_network
     restart: unless-stopped
 
-  # Celery Worker
-  celery_worker:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: crypto_celery
-    command: celery -A services.tasks worker --loglevel=info
-    environment:
-      - DATABASE_URL=postgresql://crypto_user:crypto_pass@postgres:5432/crypto_db
-      - REDIS_URL=redis://redis:6379/0
-      - CELERY_BROKER_URL=redis://redis:6379/1
-      - CELERY_RESULT_BACKEND=redis://redis:6379/2
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      backend:
-        condition: service_healthy
-    volumes:
-      - ./backend:/app
-    networks:
-      - crypto_network
-    restart: unless-stopped
+#  # Celery Worker
+#  celery_worker:
+#    build:
+#      context: ./backend
+#      dockerfile: Dockerfile
+#    container_name: crypto_celery
+#    command: celery -A services.tasks worker --loglevel=info
+#    environment:
+#      - DATABASE_URL=postgresql://crypto_user:crypto_pass@postgres:5432/crypto_db
+#      - REDIS_URL=redis://redis:6379/0
+#      - CELERY_BROKER_URL=redis://redis:6379/1
+#      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#      redis:
+#        condition: service_healthy
+#      backend:
+#        condition: service_healthy
+#    volumes:
+#      - ./backend:/app
+#    networks:
+#      - crypto_network
+#    restart: unless-stopped
 
   # Frontend React
   frontend:

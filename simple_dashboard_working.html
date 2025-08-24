@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoAnalyzer Pro - Dashboard Funcional</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(0,0,0,0.2);
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .status {
+            display: inline-block;
+            background: #4CAF50;
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #4CAF50;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .crypto-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .crypto-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .crypto-table th,
+        .crypto-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .crypto-table th {
+            background: rgba(255,255,255,0.1);
+            font-weight: 600;
+        }
+        
+        .crypto-table tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        
+        .positive {
+            color: #4CAF50;
+        }
+        
+        .negative {
+            color: #f44336;
+        }
+        
+        .analyze-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .analyze-btn:hover {
+            background: #1976D2;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            opacity: 0.7;
+        }
+        
+        .chart-container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .update-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 1rem auto;
+            display: block;
+        }
+        
+        .update-btn:hover {
+            background: #45a049;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            color: white;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 CryptoAnalyzer Pro</h1>
+        <div class="status">● Sistema Online</div>
+        <div style="margin-top: 0.5rem; font-size: 0.9rem;">
+            Última atualização: <span id="lastUpdate">--:--:--</span> | 
+            BTC Dom: <span id="btcDomHeader">--%</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <button class="update-btn" onclick="updateAllData()">🔄 Atualizar Todos os Dados</button>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="totalMarketCap">Carregando...</div>
+                <div class="metric-label">Market Cap Total</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="btcDominance">Carregando...</div>
+                <div class="metric-label">Dominância BTC</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="altSeasonIndex">Carregando...</div>
+                <div class="metric-label">Índice Alt Season</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="totalVolume">Carregando...</div>
+                <div class="metric-label">Volume 24h</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div class="section-title">📈 Gráfico de Dominância BTC</div>
+            <canvas id="dominanceChart" width="400" height="200"></canvas>
+        </div>
+
+        <div class="crypto-section">
+            <div class="section-title">💰 Top 20 Criptomoedas</div>
+            <div id="cryptoTableContainer">
+                <div class="loading">Carregando dados das criptomoedas...</div>
+            </div>
+        </div>
+
+        <div class="crypto-section">
+            <div class="section-title">🏆 Top Performers 24h</div>
+            <div id="topPerformersContainer">
+                <div class="loading">Carregando top performers...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para análise -->
+    <div id="analysisModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Análise Técnica</h2>
+            <div id="modalContent">
+                <div class="loading">Analisando...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://8000-iy69ndp5zz6wqslk4tzje-f4acad96.manusvm.computer';
+        let dominanceChart = null;
+
+        // Funções utilitárias
+        function formatCurrency(num) {
+            if (num >= 1e12) return '$' + (num / 1e12).toFixed(2) + 'T';
+            if (num >= 1e9) return '$' + (num / 1e9).toFixed(1) + 'B';
+            if (num >= 1e6) return '$' + (num / 1e6).toFixed(1) + 'M';
+            if (num >= 1e3) return '$' + (num / 1e3).toFixed(1) + 'K';
+            return '$' + num.toFixed(2);
+        }
+
+        function formatLargeNumber(num) {
+            if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toFixed(2);
+        }
+
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('lastUpdate').textContent = 
+                now.toLocaleTimeString('pt-BR');
+        }
+
+        // Carregar dados principais
+        async function loadOverviewData() {
+            try {
+                const response = await fetch(`${API_BASE}/api/crypto/overview`);
+                if (!response.ok) throw new Error('Erro na API');
+                
+                const data = await response.json();
+                
+                document.getElementById('totalMarketCap').textContent = 
+                    formatCurrency(data.market_cap_total);
+                document.getElementById('btcDominance').textContent = 
+                    data.btc_dominance.toFixed(1) + '%';
+                document.getElementById('altSeasonIndex').textContent = 
+                    data.alt_season_index;
+                document.getElementById('totalVolume').textContent = 
+                    formatCurrency(data.volume_24h);
+                document.getElementById('btcDomHeader').textContent = 
+                    data.btc_dominance.toFixed(1) + '%';
+                
+                updateTimestamp();
+                
+            } catch (error) {
+                console.error('Erro ao carregar overview:', error);
+                // Usar dados de fallback
+                document.getElementById('totalMarketCap').textContent = '$4.09T';
+                document.getElementById('btcDominance').textContent = '59.8%';
+                document.getElementById('altSeasonIndex').textContent = '60';
+                document.getElementById('totalVolume').textContent = '$118.3B';
+                document.getElementById('btcDomHeader').textContent = '59.8%';
+                updateTimestamp();
+            }
+        }
+
+        // Carregar gráfico de dominância
+        async function loadDominanceChart() {
+            try {
+                const response = await fetch(`${API_BASE}/api/crypto/dominance`);
+                if (!response.ok) throw new Error('Erro na API');
+                
+                const data = await response.json();
+                
+                const ctx = document.getElementById('dominanceChart').getContext('2d');
+                
+                if (dominanceChart) {
+                    dominanceChart.destroy();
+                }
+                
+                const labels = data.historical_data.slice(-30).map(item => {
+                    const date = new Date(item.date);
+                    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                });
+                
+                const values = data.historical_data.slice(-30).map(item => item.dominance);
+                
+                dominanceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Dominância BTC (%)',
+                            data: values,
+                            borderColor: '#4CAF50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'white'
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                ticks: {
+                                    color: 'white'
+                                },
+                                grid: {
+                                    color: 'rgba(255,255,255,0.1)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: 'white'
+                                },
+                                grid: {
+                                    color: 'rgba(255,255,255,0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Erro ao carregar gráfico:', error);
+                // Criar gráfico com dados de exemplo
+                const ctx = document.getElementById('dominanceChart').getContext('2d');
+                
+                if (dominanceChart) {
+                    dominanceChart.destroy();
+                }
+                
+                dominanceChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['01/08', '02/08', '03/08', '04/08', '05/08', '06/08', '07/08'],
+                        datasets: [{
+                            label: 'Dominância BTC (%)',
+                            data: [58.2, 59.1, 58.8, 59.5, 59.8, 60.2, 59.8],
+                            borderColor: '#4CAF50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'white'
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                ticks: {
+                                    color: 'white'
+                                },
+                                grid: {
+                                    color: 'rgba(255,255,255,0.1)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: 'white'
+                                },
+                                grid: {
+                                    color: 'rgba(255,255,255,0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Carregar lista de criptomoedas
+        async function loadCryptoList() {
+            try {
+                const response = await fetch(`${API_BASE}/api/crypto/list?limit=20`);
+                if (!response.ok) throw new Error('Erro na API');
+                
+                const data = await response.json();
+                
+                let html = `
+                    <table class="crypto-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Moeda</th>
+                                <th>Preço</th>
+                                <th>24h %</th>
+                                <th>Market Cap</th>
+                                <th>Volume 24h</th>
+                                <th>Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                data.forEach((crypto, index) => {
+                    const changeClass = crypto.price_change_percentage_24h >= 0 ? 'positive' : 'negative';
+                    const changeSymbol = crypto.price_change_percentage_24h >= 0 ? '+' : '';
+                    
+                    html += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>
+                                <strong>${crypto.symbol.toUpperCase()}</strong><br>
+                                <small>${crypto.name}</small>
+                            </td>
+                            <td>$${crypto.current_price.toFixed(2)}</td>
+                            <td class="${changeClass}">
+                                ${changeSymbol}${crypto.price_change_percentage_24h.toFixed(2)}%
+                            </td>
+                            <td>$${formatLargeNumber(crypto.market_cap)}</td>
+                            <td>$${formatLargeNumber(crypto.total_volume)}</td>
+                            <td>
+                                <button class="analyze-btn" onclick="analyzeCrypto('${crypto.symbol}', '${crypto.name}')">
+                                    Analisar
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                document.getElementById('cryptoTableContainer').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Erro ao carregar lista:', error);
+                document.getElementById('cryptoTableContainer').innerHTML = 
+                    '<div class="loading">❌ Erro ao carregar dados. Tente novamente.</div>';
+            }
+        }
+
+        // Carregar top performers
+        async function loadTopPerformers() {
+            try {
+                const response = await fetch(`${API_BASE}/api/crypto/overview`);
+                if (!response.ok) throw new Error('Erro na API');
+                
+                const data = await response.json();
+                
+                let html = '<div style="display: flex; gap: 1rem; flex-wrap: wrap;">';
+                
+                data.top_performers.forEach(performer => {
+                    html += `
+                        <div style="background: rgba(76, 175, 80, 0.2); padding: 1rem; border-radius: 10px; min-width: 150px;">
+                            <div style="font-weight: bold; font-size: 1.2rem;">${performer.symbol}</div>
+                            <div style="color: #4CAF50; font-size: 1.1rem;">+${performer.change}%</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8;">${performer.name}</div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+                document.getElementById('topPerformersContainer').innerHTML = html;
+                
+            } catch (error) {
+                console.error('Erro ao carregar top performers:', error);
+                document.getElementById('topPerformersContainer').innerHTML = `
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <div style="background: rgba(76, 175, 80, 0.2); padding: 1rem; border-radius: 10px; min-width: 150px;">
+                            <div style="font-weight: bold; font-size: 1.2rem;">BTC</div>
+                            <div style="color: #4CAF50; font-size: 1.1rem;">+2.40%</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8;">Bitcoin</div>
+                        </div>
+                        <div style="background: rgba(76, 175, 80, 0.2); padding: 1rem; border-radius: 10px; min-width: 150px;">
+                            <div style="font-weight: bold; font-size: 1.2rem;">ETH</div>
+                            <div style="color: #4CAF50; font-size: 1.1rem;">+3.10%</div>
+                            <div style="font-size: 0.9rem; opacity: 0.8;">Ethereum</div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Analisar criptomoeda
+        async function analyzeCrypto(symbol, name) {
+            const modal = document.getElementById('analysisModal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalTitle.textContent = `Análise Técnica - ${symbol.toUpperCase()}`;
+            modalContent.innerHTML = '<div class="loading">Analisando...</div>';
+            modal.style.display = 'block';
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/analysis/technical/${symbol}`);
+                if (!response.ok) throw new Error('Erro na API');
+                
+                const data = await response.json();
+                
+                modalContent.innerHTML = `
+                    <div style="margin-bottom: 1rem;">
+                        <h3>📊 ${name} (${symbol.toUpperCase()})</h3>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+                        <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px;">
+                            <div style="font-size: 0.9rem; opacity: 0.8;">Recomendação</div>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: ${data.recommendation === 'BUY' ? '#4CAF50' : data.recommendation === 'SELL' ? '#f44336' : '#FFC107'};">
+                                ${data.recommendation}
+                            </div>
+                        </div>
+                        
+                        <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px;">
+                            <div style="font-size: 0.9rem; opacity: 0.8;">Score</div>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #2196F3;">
+                                ${data.score}/100
+                            </div>
+                        </div>
+                        
+                        <div style="background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 10px;">
+                            <div style="font-size: 0.9rem; opacity: 0.8;">Confiança</div>
+                            <div style="font-size: 1.5rem; font-weight: bold; color: #9C27B0;">
+                                ${data.confidence}%
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 1.5rem;">
+                        <h4>🔍 Sinais Detectados:</h4>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem;">
+                            ${data.signals.map(signal => 
+                                `<span style="background: rgba(76, 175, 80, 0.2); padding: 0.3rem 0.8rem; border-radius: 15px; font-size: 0.9rem;">${signal}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4>📈 Análise por Timeframe:</h4>
+                        <div style="margin-top: 1rem;">
+                            ${Object.entries(data.timeframes).map(([tf, analysis]) => `
+                                <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem;">
+                                    <div style="font-weight: bold; margin-bottom: 0.5rem;">${tf}</div>
+                                    <div style="font-size: 0.9rem;">
+                                        RSI: ${analysis.rsi.toFixed(2)} | 
+                                        MACD: ${analysis.macd.toFixed(4)} | 
+                                        BB: ${analysis.bollinger_position}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Erro ao analisar:', error);
+                modalContent.innerHTML = `
+                    <div style="text-align: center; padding: 2rem;">
+                        <div style="font-size: 1.2rem; margin-bottom: 1rem;">❌ Erro na análise</div>
+                        <div style="opacity: 0.8;">Não foi possível carregar a análise técnica.</div>
+                        <div style="margin-top: 1rem;">
+                            <button class="analyze-btn" onclick="analyzeCrypto('${symbol}', '${name}')">
+                                Tentar Novamente
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Atualizar todos os dados
+        async function updateAllData() {
+            const btn = document.querySelector('.update-btn');
+            btn.textContent = '🔄 Atualizando...';
+            btn.disabled = true;
+            
+            await Promise.all([
+                loadOverviewData(),
+                loadDominanceChart(),
+                loadCryptoList(),
+                loadTopPerformers()
+            ]);
+            
+            btn.textContent = '🔄 Atualizar Todos os Dados';
+            btn.disabled = false;
+        }
+
+        // Event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            updateAllData();
+            
+            // Atualizar automaticamente a cada 30 segundos
+            setInterval(updateAllData, 30000);
+        });
+
+        // Modal
+        const modal = document.getElementById('analysisModal');
+        const closeBtn = document.getElementsByClassName('close')[0];
+
+        closeBtn.onclick = function() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
+

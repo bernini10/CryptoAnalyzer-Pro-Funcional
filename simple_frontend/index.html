@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CryptoAnalyzer Pro - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .status {
+            display: inline-block;
+            background: #4CAF50;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h3 {
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            color: #FFD700;
+        }
+        
+        .crypto-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .crypto-item:last-child {
+            border-bottom: none;
+        }
+        
+        .crypto-name {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        
+        .crypto-symbol {
+            color: #FFD700;
+            font-size: 0.9em;
+        }
+        
+        .crypto-price {
+            text-align: right;
+        }
+        
+        .price-value {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .price-change {
+            font-size: 0.9em;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-top: 5px;
+        }
+        
+        .positive {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .negative {
+            background: #f44336;
+            color: white;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+        }
+        
+        .refresh-btn {
+            background: #FFD700;
+            color: #1e3c72;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px auto;
+            display: block;
+        }
+        
+        .refresh-btn:hover {
+            background: #FFC107;
+            transform: scale(1.05);
+        }
+        
+        .alt-season {
+            text-align: center;
+            font-size: 1.2em;
+            margin: 20px 0;
+        }
+        
+        .alt-season-indicator {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 10px;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 CryptoAnalyzer Pro</h1>
+        <div class="status" id="status">● Sistema Online</div>
+    </div>
+    
+    <div class="container">
+        <button class="refresh-btn" onclick="loadData()">🔄 Atualizar Dados</button>
+        
+        <div class="alt-season" id="altSeason">
+            <div>📊 Análise Alt Season</div>
+            <div class="loading">Carregando...</div>
+        </div>
+        
+        <div class="grid">
+            <div class="card">
+                <h3>💰 Top Criptomoedas</h3>
+                <div id="cryptoList" class="loading">Carregando dados...</div>
+            </div>
+            
+            <div class="card">
+                <h3>📈 Análise Técnica</h3>
+                <div id="analysis" class="loading">Carregando análise...</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>CryptoAnalyzer Pro - Análise Avançada de Criptomoedas</p>
+        <p>Desenvolvido com ❤️ para maximizar seus investimentos</p>
+    </div>
+
+    <script>
+        const API_BASE = 'https://8000-ih6gzqym3acpk3fwhwqwj-47b8453d.manusvm.computer';
+        
+        async function loadData() {
+            try {
+                // Atualizar status
+                document.getElementById('status').innerHTML = '● Atualizando...';
+                
+                // Carregar lista de criptos
+                const cryptoResponse = await fetch(`${API_BASE}/api/crypto/list`);
+                const cryptoData = await cryptoResponse.json();
+                displayCryptos(cryptoData.data);
+                
+                // Carregar análise alt season
+                const analysisResponse = await fetch(`${API_BASE}/api/analysis/altcoins`);
+                const analysisData = await analysisResponse.json();
+                displayAltSeason(analysisData);
+                displayAnalysis(analysisData);
+                
+                // Atualizar status
+                document.getElementById('status').innerHTML = '● Sistema Online';
+                
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                document.getElementById('status').innerHTML = '● Erro de Conexão';
+                document.getElementById('cryptoList').innerHTML = '❌ Erro ao carregar dados';
+                document.getElementById('analysis').innerHTML = '❌ Erro ao carregar análise';
+            }
+        }
+        
+        function displayCryptos(cryptos) {
+            const container = document.getElementById('cryptoList');
+            if (!cryptos || cryptos.length === 0) {
+                container.innerHTML = '❌ Nenhum dado disponível';
+                return;
+            }
+            
+            container.innerHTML = cryptos.map(crypto => `
+                <div class="crypto-item">
+                    <div>
+                        <div class="crypto-name">${crypto.name}</div>
+                        <div class="crypto-symbol">${crypto.symbol}</div>
+                    </div>
+                    <div class="crypto-price">
+                        <div class="price-value">$${crypto.current_price.toLocaleString()}</div>
+                        <div class="price-change ${crypto.price_change_24h >= 0 ? 'positive' : 'negative'}">
+                            ${crypto.price_change_24h >= 0 ? '+' : ''}${crypto.price_change_24h.toFixed(2)}%
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function displayAltSeason(data) {
+            const container = document.getElementById('altSeason');
+            const dominance = data.btc_dominance || 0;
+            const index = data.alt_season_index || 0;
+            const trend = data.trend || 'unknown';
+            
+            let trendColor = '#FFD700';
+            let trendText = 'Neutro';
+            
+            if (trend.includes('alt_season')) {
+                trendColor = '#4CAF50';
+                trendText = '🚀 Alt Season Ativa!';
+            } else if (trend.includes('btc')) {
+                trendColor = '#FF9800';
+                trendText = '₿ Dominância BTC';
+            }
+            
+            container.innerHTML = `
+                <div>📊 Análise Alt Season</div>
+                <div class="alt-season-indicator" style="background: ${trendColor}; color: #1e3c72;">
+                    ${trendText}
+                </div>
+                <div style="margin-top: 10px;">
+                    <div>Dominância BTC: ${dominance.toFixed(1)}%</div>
+                    <div>Índice Alt Season: ${index}/100</div>
+                </div>
+            `;
+        }
+        
+        function displayAnalysis(data) {
+            const container = document.getElementById('analysis');
+            const altcoins = data.top_altcoins || [];
+            
+            if (altcoins.length === 0) {
+                container.innerHTML = '❌ Nenhuma análise disponível';
+                return;
+            }
+            
+            container.innerHTML = altcoins.map(coin => `
+                <div class="crypto-item">
+                    <div>
+                        <div class="crypto-name">${coin.symbol}</div>
+                        <div class="crypto-symbol">Score: ${coin.score}/100</div>
+                    </div>
+                    <div class="crypto-price">
+                        <div class="price-value">${coin.recommendation.toUpperCase()}</div>
+                        <div class="price-change positive">
+                            ${(coin.confidence * 100).toFixed(0)}% confiança
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Carregar dados iniciais
+        loadData();
+        
+        // Atualizar a cada 30 segundos
+        setInterval(loadData, 30000);
+    </script>
+</body>
+</html>
+

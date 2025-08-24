@@ -9,7 +9,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies with exact versions
-RUN npm ci --only=production
+RUN npm install --only=production
 
 # Copy source code
 COPY . .

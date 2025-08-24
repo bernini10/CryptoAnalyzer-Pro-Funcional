@@ -1,0 +1,106 @@
+//@version=5
+indicator("CryptoAnalyzer Pro - Real Data Sender", shorttitle="CAP-RDS", overlay=false)
+
+// ============================================================================
+// CRYPTOANALYZER PRO - PINE SCRIPT PARA DADOS REAIS
+// ============================================================================
+// Este script envia dados REAIS do TradingView para seu CryptoAnalyzer Pro
+// Substitua a URL do webhook pela URL do seu backend
+// ============================================================================
+
+// CONFIGURAÇÕES
+webhook_url = input.string("http://localhost:8001/api/tradingview/pine-webhook", title="Webhook URL")
+send_alerts = input.bool(true, title="Enviar Alertas")
+
+// INDICADORES TÉCNICOS
+rsi_length = input.int(14, title="RSI Length")
+macd_fast = input.int(12, title="MACD Fast")
+macd_slow = input.int(26, title="MACD Slow")
+macd_signal = input.int(9, title="MACD Signal")
+bb_length = input.int(20, title="Bollinger Bands Length")
+bb_mult = input.float(2.0, title="Bollinger Bands Multiplier")
+
+// CÁLCULOS DOS INDICADORES
+// RSI
+rsi_value = ta.rsi(close, rsi_length)
+
+// MACD
+[macd_line, signal_line, histogram] = ta.macd(close, macd_fast, macd_slow, macd_signal)
+
+// Bollinger Bands
+bb_basis = ta.sma(close, bb_length)
+bb_dev = bb_mult * ta.stdev(close, bb_length)
+bb_upper = bb_basis + bb_dev
+bb_lower = bb_basis - bb_dev
+
+// SMAs e EMAs
+sma_20 = ta.sma(close, 20)
+sma_50 = ta.sma(close, 50)
+ema_12 = ta.ema(close, 12)
+ema_26 = ta.ema(close, 26)
+
+// PREPARAR DADOS PARA WEBHOOK
+json_data = '{"symbol":"' + str.tostring(syminfo.ticker) + 
+           '","price":' + str.tostring(close) + 
+           ',"timestamp":"' + str.tostring(year) + '-' + 
+           str.format("{0,number,00}", month) + '-' + 
+           str.format("{0,number,00}", dayofmonth) + 'T' + 
+           str.format("{0,number,00}", hour) + ':' + 
+           str.format("{0,number,00}", minute) + ':00Z"' +
+           ',"rsi":' + str.tostring(rsi_value) +
+           ',"macd":' + str.tostring(macd_line) +
+           ',"macd_signal":' + str.tostring(signal_line) +
+           ',"macd_histogram":' + str.tostring(histogram) +
+           ',"bb_upper":' + str.tostring(bb_upper) +
+           ',"bb_middle":' + str.tostring(bb_basis) +
+           ',"bb_lower":' + str.tostring(bb_lower) +
+           ',"sma_20":' + str.tostring(sma_20) +
+           ',"sma_50":' + str.tostring(sma_50) +
+           ',"ema_12":' + str.tostring(ema_12) +
+           ',"ema_26":' + str.tostring(ema_26) +
+           ',"volume":' + str.tostring(volume) +
+           ',"high":' + str.tostring(high) +
+           ',"low":' + str.tostring(low) +
+           ',"open":' + str.tostring(open) +
+           ',"close":' + str.tostring(close) + '}'
+
+// CONDIÇÕES PARA ENVIO
+// Envia dados a cada nova barra (mudança de timeframe)
+new_bar = ta.change(time) != 0
+
+// ALERTAS
+if new_bar and send_alerts
+    alert(json_data, alert.freq_once_per_bar)
+
+// PLOTAR INDICADORES (OPCIONAL - PARA VISUALIZAÇÃO)
+plot(rsi_value, title="RSI", color=color.blue, linewidth=2)
+hline(70, "RSI Overbought", color=color.red, linestyle=hline.style_dashed)
+hline(30, "RSI Oversold", color=color.green, linestyle=hline.style_dashed)
+hline(50, "RSI Midline", color=color.gray, linestyle=hline.style_dotted)
+
+// LABELS INFORMATIVOS
+if barstate.islast
+    label.new(bar_index, rsi_value, 
+              text="RSI: " + str.tostring(rsi_value, "#.##") + 
+              "\nMACD: " + str.tostring(macd_line, "#.##") + 
+              "\nPrice: $" + str.tostring(close, "#.##"), 
+              style=label.style_label_left, 
+              color=color.blue, 
+              textcolor=color.white, 
+              size=size.normal)
+
+// ============================================================================
+// INSTRUÇÕES DE USO:
+// ============================================================================
+// 1. Copie este código
+// 2. No TradingView, vá em Pine Editor
+// 3. Cole o código e clique em "Add to Chart"
+// 4. Configure o Webhook URL para: SEU_BACKEND_URL/api/tradingview/pine-webhook
+// 5. Crie um alerta:
+//    - Condition: CryptoAnalyzer Pro - Real Data Sender
+//    - Options: Once Per Bar Close
+//    - Webhook URL: SEU_BACKEND_URL/api/tradingview/pine-webhook
+//    - Message: {{strategy.order.alert_message}}
+// 6. O script enviará dados REAIS automaticamente!
+// ============================================================================
+
